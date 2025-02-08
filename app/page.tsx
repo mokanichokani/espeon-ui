@@ -1,4 +1,6 @@
 "use client";
+import { useState } from 'react';
+import { connectWallet } from '@/utils/web3Config';
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, Shield, Coins, Users, Trophy, ArrowRight, Twitter, Disc as Discord, Github, Heart, Twitch } from "lucide-react";
@@ -6,8 +8,14 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 
+interface WalletState {
+  address: string;
+  message: string;
+}
+
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [walletInfo, setWalletInfo] = useState<WalletState>({ address: '', message: '' });
 
   useEffect(() => {
     if (videoRef.current) {
@@ -86,6 +94,20 @@ export default function Home() {
     }
   ];
 
+  const handleConnect = async () => {
+    try {
+      const result = await connectWallet();
+      setWalletInfo({
+        address: result.address,
+        message: result.message
+      });
+      console.log('Connected:', result);
+    } catch (error) {
+      console.error('Failed to connect:', error);
+      alert(error.message);
+    }
+  };
+
   return (
     <main className="min-h-screen relative overflow-hidden">
       <video
@@ -130,15 +152,18 @@ export default function Home() {
             ))}
           </div>
           <motion.button
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="btn-primary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Launch App
-          </motion.button>
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              className="btn-primary"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleConnect}
+            >
+              {walletInfo.address ? 
+                `Connected: ${walletInfo.address.slice(0, 6)}...${walletInfo.address.slice(-4)}` : 
+                'Connect Wallet'}
+            </motion.button>
         </div>
       </nav>
 
